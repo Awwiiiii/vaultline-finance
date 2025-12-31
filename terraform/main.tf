@@ -25,6 +25,10 @@ module "vpc" {
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
 
+  map_public_ip_on_launch = true
+  enable_dns_hostnames = true  # Nodes need this to resolve the EKS API
+  enable_dns_support   = true  # Nodes need this to reach AWS services
+
   enable_nat_gateway = true
   single_nat_gateway = true
 
@@ -46,7 +50,7 @@ module "eks" {
   cluster_version = "1.30" # Upgraded to a highly supported stable version
 
   vpc_id                         = module.vpc.vpc_id
-  subnet_ids                     = module.vpc.private_subnets
+  subnet_ids                     = module.vpc.public_subnets
   cluster_endpoint_public_access = true
 
   # Self-managed node groups often need this for administrative access
@@ -54,7 +58,8 @@ module "eks" {
 
   eks_managed_node_groups = {
     initial = {
-      instance_types = ["t3.medium"]
+      capacity_type  = "SPOT"
+      instance_types = ["t3.small" , "t3.medium" ] # Cost-effective instance types
       ami_type       = "AL2_x86_64" # Explicitly use Amazon Linux 2
       
       min_size     = 1
