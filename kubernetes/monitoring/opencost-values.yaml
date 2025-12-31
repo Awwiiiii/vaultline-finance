@@ -1,0 +1,9 @@
+opencost:
+  prometheus:
+    external:
+      url: http://prometheus-server.monitoring.svc.cluster.local
+  opencost:
+    exporter:
+      defaultClusterId: "vaultline-cluster"
+    ui:
+      enabled: true

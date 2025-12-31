@@ -1,0 +1,13 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Windows
+Thumbs.db
+.DS_Store
+
+# Secret files (future-proofing)
+*.pem
+*.key
