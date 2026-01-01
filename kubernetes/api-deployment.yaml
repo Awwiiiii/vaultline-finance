@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultline-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vaultline-api
+  template:
+    metadata:
+      labels:
+        app: vaultline-api
+    spec:
+      containers:
+      - name: api
+        image: awi2005/vaultline-api:latest
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultline-api-service
+spec:
+  selector:
+    app: vaultline-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000

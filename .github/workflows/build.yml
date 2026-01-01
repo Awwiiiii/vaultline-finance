@@ -1,21 +1,30 @@
-﻿name: Build and Push to DockerHub
+﻿name: Build and Push Multi-Service
 on:
   push:
     branches: [ main ]
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
+
+      - name: Build and Push Frontend
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./frontend
           push: true
-          tags: awi2005/vaultline-web:latest
+          tags: awi2005/vaultline-frontend:latest
+
+      - name: Build and Push Backend (API)
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: awi2005/vaultline-api:latest
