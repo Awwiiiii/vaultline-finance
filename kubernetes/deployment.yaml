@@ -15,6 +15,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: nginx:latest
+        # Replace this with your actual image name once built
+        image: nginx:latest 
         ports:
         - containerPort: 80
