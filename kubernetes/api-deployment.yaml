@@ -12,6 +12,8 @@ spec:
       labels:
         app: vaultline-api
     spec:
+      imagePullSecrets:      
+      - name: regcred
       containers:
       - name: api
         image: awi2005/vaultline-api:latest
