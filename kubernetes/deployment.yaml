@@ -15,7 +15,6 @@ spec:
     spec:
       containers:
       - name: web
-        # Replace this with your actual image name once built
-        image: nginx:latest 
+        image: awi2005/vaultline-web:latest
         ports:
         - containerPort: 80
