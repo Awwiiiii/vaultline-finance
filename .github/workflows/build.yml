@@ -1,5 +1,4 @@
-﻿$workflow = @"
-name: Build and Push to DockerHub
+﻿name: Build and Push to DockerHub
 on:
   push:
     branches: [ main ]
@@ -20,5 +19,3 @@ jobs:
           context: .
           push: true
           tags: awi2005/vaultline-web:latest
-"@
-$workflow | Out-File -FilePath ".github/workflows/build.yml" -Encoding utf8
