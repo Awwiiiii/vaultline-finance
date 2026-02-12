@@ -18,3 +18,6 @@ spec:
         image: awi2005/vaultline-web:latest
         ports:
         - containerPort: 80
+        env:
+        - name: API_URL
+          value: "http://127.0.0.1:5000"
