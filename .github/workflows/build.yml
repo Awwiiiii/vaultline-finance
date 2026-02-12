@@ -26,7 +26,7 @@ jobs:
       - name: Build and Push Backend (API)
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
+          context: .
           file: ./backend/Dockerfile
           push: true
           tags: awi2005/vaultline-api:latest
