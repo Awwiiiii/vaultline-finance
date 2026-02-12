@@ -19,15 +19,15 @@ jobs:
       - name: Build and Push Frontend
         uses: docker/build-push-action@v4
         with:
-          context: ./frontend                
-          file: ./frontend/Dockerfile # Explicitly point to the file path
+          context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
-          tags: awi2005/vaultline-web:latest
+          tags: awi2005/vaultline-web:latest # Match your K8s deployment!
 
       - name: Build and Push Backend (API)
         uses: docker/build-push-action@v4
         with:
-          context: ./backend               
-          file: ./backend/Dockerfile  # Explicitly point to the file path
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: awi2005/vaultline-api:latest
