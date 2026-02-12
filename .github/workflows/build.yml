@@ -2,6 +2,7 @@
 on:
   push:
     branches: [ main ]
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -18,15 +19,16 @@ jobs:
       - name: Build and Push Frontend
         uses: docker/build-push-action@v4
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: .                # Use the repository root as context
+          file: ./frontend/Dockerfile # Explicitly point to the file path
           push: true
+          # Note: 'vaultline-web' must match your deployment.yaml image name
           tags: awi2005/vaultline-web:latest
 
       - name: Build and Push Backend (API)
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: .                # Use the repository root as context
+          file: ./backend/Dockerfile  # Explicitly point to the file path
           push: true
           tags: awi2005/vaultline-api:latest
