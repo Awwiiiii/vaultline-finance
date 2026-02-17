@@ -18,6 +18,14 @@ spec:
         image: awi2005/vaultline-web:latest
         ports:
         - containerPort: 80
+        # ADDED: Resource Requests and Limits for Stability
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
         env:
         - name: API_URL
           value: "http://127.0.0.1:5000"
