@@ -17,8 +17,17 @@ spec:
       containers:
       - name: api
         image: awi2005/vaultline-api:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
+        # ADD THIS BLOCK TO FIX THE WARNINGS
+        resources:
+          requests:
+            memory: "64Mi"   # Minimum guaranteed RAM
+            cpu: "100m"      # 10% of a CPU core
+          limits:
+            memory: "128Mi"  # Hard cap to prevent memory leaks
+            cpu: "250m"      # Hard cap to prevent CPU hogging
 ---
 apiVersion: v1
 kind: Service

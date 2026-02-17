@@ -1,18 +1,62 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>VaultLine Finance</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultLine Finance | Dashboard</title>
     <style>
-        body { font-family: sans-serif; background: #0a0a0a; color: white; text-align: center; padding-top: 100px; }
-        .card { border: 1px solid #333; padding: 50px; display: inline-block; border-radius: 15px; background: #111; }
-        h1 { color: #00ff88; }
+        :root { --accent: #00ff88; --bg: #0a0a0a; --card: #161616; --danger: #f87171; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .dashboard { width: 450px; padding: 30px; background: var(--card); border-radius: 20px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
+        h1 { color: var(--accent); margin-bottom: 5px; font-size: 24px; }
+        .status-badge { background: rgba(0, 255, 136, 0.1); color: var(--accent); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .balance-label { color: #888; margin-top: 30px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-size: 48px; font-weight: bold; margin: 10px 0; transition: color 0.3s; }
+        .user-tag { color: var(--accent); opacity: 0.8; font-weight: bold; }
+        
+        /* New Ledger Styles */
+        .ledger-container { margin-top: 30px; text-align: left; border-top: 1px solid #333; padding-top: 20px; }
+        .ledger-title { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 15px; }
+        .tx-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        .tx-note { color: #bbb; }
+        .tx-amount { font-weight: bold; }
+        .deposit { color: var(--accent); }
+        
+        .btn-refresh { margin-top: 25px; background: none; border: 1px solid #444; color: #888; padding: 8px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 13px; }
+        .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
     </style>
 </head>
 <body>
-    <div class="card">
+
+    <div class="dashboard">
         <h1>VaultLine Finance</h1>
-        <p>Secure. Digital. Future.</p>
-        <p>Status: <b>Operational</b></p>
+        <span id="status-tag" class="status-badge">Awaiting Sync...</span>
+        
+        <p class="balance-label">Available Balance</p>
+        <div class="balance-amount" id="balance">$0.00</div>
+        <p>Account Holder: <span id="user" class="user-tag">Loading...</span></p>
+
+        <div class="ledger-container">
+            <div class="ledger-title">Recent Activity</div>
+            <div id="transaction-list">
+                </div>
+        </div>
+        
+        <button class="btn-refresh" onclick="fetchData()">Manual Refresh</button>
     </div>
-</body>
-</html>
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('http://127.0.0.1:5002/api/v1/account');
+                const data = await response.json();
+                
+                // 1. Update Profile & Balance
+                document.getElementById('balance').innerText = `$${data.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                document.getElementById('user').innerText = data.owner;
+                document.getElementById('status-tag').innerText = data.db_status;
+                document.getElementById('balance').style.color = "white";
+
+                // 2. Update Transaction Ledger
+                const list = document.getElementById('transaction-list');
+                if (data.transactions && data.transactions.length > 0)
