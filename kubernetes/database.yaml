@@ -10,7 +10,16 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: gp2
   awsElasticBlockStore:
-    volumeID: "vol-05ca91ea15dbf1ca6" 
+    volumeID: "vol-05ca91ea15dbf1ca6"
+    fsType: ext4
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - us-east-1a
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -29,6 +38,7 @@ kind: Deployment
 metadata:
   name: vaultline-db
 spec:
+  replicas: 1 
   selector:
     matchLabels:
       app: vaultline-db
