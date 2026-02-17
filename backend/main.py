@@ -12,8 +12,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# FIXED: Using Service Name instead of hardcoded IP
 DB_CONFIG = {
-    "host": "172.20.33.99",
+    "host": "vaultline-db-service", 
     "database": "vaultlinedb",
     "user": "postgres",
     "password": "vaultpass123"
@@ -32,7 +33,7 @@ def get_account_data():
         if not acc:
             return {"error": "Account not found"}
 
-        # 2. Fetch Transaction History linked by ID
+        # 2. Fetch Transaction History
         cur.execute("""
             SELECT type, amount, description, created_at 
             FROM transactions 
