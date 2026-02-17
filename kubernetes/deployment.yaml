@@ -21,10 +21,10 @@ spec:
         # ADDED: Resource Requests and Limits for Stability
         resources:
           requests:
-            memory: "128Mi"
+            memory: "64Mi"
             cpu: "100m"
           limits:
-            memory: "256Mi"
+            memory: "128Mi"
             cpu: "200m"
         env:
         - name: API_URL
