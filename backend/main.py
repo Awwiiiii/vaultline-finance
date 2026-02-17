@@ -13,7 +13,7 @@ app.add_middleware(
 )
 
 DB_CONFIG = {
-    "host": "vaultline-db-service",
+    "host": "172.20.33.99",
     "database": "vaultlinedb",
     "user": "postgres",
     "password": "vaultpass123"
