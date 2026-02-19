@@ -46,17 +46,42 @@
     </div>
 
     <script>
-        async function fetchData() {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/api/v1/account');
-                const data = await response.json();
-                
-                // 1. Update Profile & Balance
-                document.getElementById('balance').innerText = `$${data.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                document.getElementById('user').innerText = data.owner;
-                document.getElementById('status-tag').innerText = data.db_status;
-                document.getElementById('balance').style.color = "white";
+    async function fetchData() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/v1/account');
+            const data = await response.json();
 
-                // 2. Update Transaction Ledger
-                const list = document.getElementById('transaction-list');
-                if (data.transactions && data.transactions.length > 0)
+            // Update balance & user
+            document.getElementById('balance').innerText =
+                `$${data.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            document.getElementById('user').innerText = data.owner;
+            document.getElementById('status-tag').innerText = data.db_status;
+            document.getElementById('balance').style.color = "white";
+
+            // Update transaction list
+            const list = document.getElementById('transaction-list');
+            list.innerHTML = "";
+
+            if (data.transactions && data.transactions.length > 0) {
+                data.transactions.forEach(tx => {
+                    const item = document.createElement("div");
+                    item.className = "tx-item";
+                    item.innerHTML = `
+                        <span class="tx-note">${tx.note}</span>
+                        <span class="tx-amount deposit">$${tx.amount}</span>
+                    `;
+                    list.appendChild(item);
+                });
+            } else {
+                list.innerHTML = "<div class='tx-note'>No recent activity</div>";
+            }
+
+        } catch (error) {
+            console.error("API fetch failed:", error);
+            document.getElementById('status-tag').innerText = "API ERROR";
+        }
+    }
+
+    // Auto-load data on page load
+    fetchData();
+</script>
