@@ -1,14 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
 # Terraform
 .terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
 
-# Windows
-Thumbs.db
+# OS
 .DS_Store
+Thumbs.db
 
-# Secret files (future-proofing)
+# Secrets
 *.pem
 *.key
+*.env
+
+# binaries / tools
 argocd.exe
+kubectl
+eksctl
+aws
+awscliv2.zip
