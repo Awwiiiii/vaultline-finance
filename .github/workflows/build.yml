@@ -1,4 +1,5 @@
-﻿name: Build and Push Multi-Service
+name: Build and Push Multi-Service
+
 on:
   push:
     branches: [ main ]
@@ -6,6 +7,7 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -16,18 +18,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # ---------- FRONTEND ----------
       - name: Build and Push Frontend
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: awi2005/vaultline-web:latest # Match your K8s deployment!
+          tags: awi2005/vaultline-web:latest
 
-      - name: Build and Push Backend (API)
+      # ---------- LEDGER SERVICE ----------
+      - name: Build and Push Ledger Service
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./backend/ledger-service
+          file: ./backend/ledger-service/Dockerfile
           push: true
-          tags: awi2005/vaultline-api:latest
+          tags: awi2005/vaultline-ledger:latest
+
+      # ---------- AUTH SERVICE ----------
+      - name: Build and Push Auth Service
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend/auth-service
+          file: ./backend/auth-service/Dockerfile
+          push: true
+          tags: awi2005/vaultline-auth:latest
