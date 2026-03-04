@@ -12,42 +12,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# FIXED: Using Service Name instead of hardcoded IP
+# Database configuration
 DB_CONFIG = {
-    "host": "vaultline-db-service", 
+    "host": "vaultline-db-service",
     "database": "vaultlinedb",
     "user": "postgres",
     "password": "vaultpass123"
 }
 
-@app.get("/api/v1/account")
-def get_account_data():
+
+@app.get("/api/v1/account/{owner}")
+def get_account_data(owner: str):
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
-        
-        # 1. Fetch Account Details
-        cur.execute("SELECT id, owner_name, balance FROM accounts WHERE owner_name = 'Awi2005';")
+
+        # Fetch account details dynamically
+        cur.execute(
+            "SELECT id, owner_name, balance FROM accounts WHERE owner_name = %s;",
+            (owner,)
+        )
+
         acc = cur.fetchone()
-        
+
         if not acc:
             return {"error": "Account not found"}
 
-        # 2. Fetch Transaction History
+        # Fetch transaction history
         cur.execute("""
-            SELECT type, amount, description, created_at 
-            FROM transactions 
-            WHERE account_id = %s 
-            ORDER BY created_at DESC 
+            SELECT type, amount, description, created_at
+            FROM transactions
+            WHERE account_id = %s
+            ORDER BY created_at DESC
             LIMIT 5;
         """, (acc[0],))
-        
+
         rows = cur.fetchall()
+
         transactions = [
-            {"type": r[0], "amount": float(r[1]), "note": r[2], "date": str(r[3])} 
+            {
+                "type": r[0],
+                "amount": float(r[1]),
+                "note": r[2],
+                "date": str(r[3])
+            }
             for r in rows
         ]
-        
+
         cur.close()
         conn.close()
 
@@ -57,5 +68,9 @@ def get_account_data():
             "transactions": transactions,
             "db_status": "Verified: AWS Persistent Storage"
         }
+
     except Exception as e:
-        return {"error": str(e), "db_status": "Database Offline"}
+        return {
+            "error": str(e),
+            "db_status": "Database Offline"
+        }
