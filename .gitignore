@@ -1,6 +1,8 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 venv/
 .env
 
@@ -9,6 +11,9 @@ venv/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+
+# Logs
+*.log
 
 # OS
 .DS_Store
@@ -19,9 +24,12 @@ Thumbs.db
 *.key
 *.env
 
-# binaries / tools
+# Dev tools / binaries
 argocd.exe
 kubectl
 eksctl
-aws
+aws/
 awscliv2.zip
+
+# VSCode
+.vscode/
