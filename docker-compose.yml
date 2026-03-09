@@ -1,0 +1,110 @@
+services:
+
+  db:
+    image: postgres:15
+    container_name: vaultline-db
+    restart: always
+    environment:
+      POSTGRES_DB: vaultlinedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: vaultpass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vaultline-net
+
+
+  redis:
+    image: redis:7
+    container_name: vaultline-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - vaultline-net
+
+
+  auth-service:
+    build: ./backend/auth-service
+    container_name: vaultline-auth
+    restart: always
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - vaultline-net
+
+
+  ledger-service:
+    build: ./backend/ledger-service
+    container_name: vaultline-ledger
+    restart: always
+    ports:
+      - "8000:5000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - vaultline-net
+
+
+  gateway:
+    build: ./gateway
+    container_name: vaultline-gateway
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - auth-service
+      - ledger-service
+    networks:
+      - vaultline-net
+
+
+  frontend:
+    build: ./frontend
+    container_name: vaultline-web
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    networks:
+      - vaultline-net
+
+
+  prometheus:
+    image: prom/prometheus
+    container_name: vaultline-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - vaultline-net
+
+
+  grafana:
+    image: grafana/grafana
+    container_name: vaultline-grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - vaultline-net
+
+
+volumes:
+  postgres_data:
+
+
+networks:
+  vaultline-net:
+    driver: bridge

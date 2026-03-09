@@ -1,87 +1,254 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VaultLine Finance | Dashboard</title>
-    <style>
-        :root { --accent: #00ff88; --bg: #0a0a0a; --card: #161616; --danger: #f87171; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .dashboard { width: 450px; padding: 30px; background: var(--card); border-radius: 20px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
-        h1 { color: var(--accent); margin-bottom: 5px; font-size: 24px; }
-        .status-badge { background: rgba(0, 255, 136, 0.1); color: var(--accent); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .balance-label { color: #888; margin-top: 30px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-        .balance-amount { font-size: 48px; font-weight: bold; margin: 10px 0; transition: color 0.3s; }
-        .user-tag { color: var(--accent); opacity: 0.8; font-weight: bold; }
-        
-        /* New Ledger Styles */
-        .ledger-container { margin-top: 30px; text-align: left; border-top: 1px solid #333; padding-top: 20px; }
-        .ledger-title { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 15px; }
-        .tx-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
-        .tx-note { color: #bbb; }
-        .tx-amount { font-weight: bold; }
-        .deposit { color: var(--accent); }
-        
-        .btn-refresh { margin-top: 25px; background: none; border: 1px solid #444; color: #888; padding: 8px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 13px; }
-        .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>VaultLine Finance</title>
+
+<style>
+
+:root{
+--accent:#00ff88;
+--bg:#0a0a0a;
+--card:#161616;
+}
+
+body{
+font-family:Segoe UI;
+background:var(--bg);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+margin:0;
+}
+
+.dashboard{
+width:420px;
+padding:30px;
+background:var(--card);
+border-radius:18px;
+border:1px solid #333;
+text-align:center;
+}
+
+h1{
+color:var(--accent);
+margin-bottom:5px;
+}
+
+.status{
+font-size:11px;
+color:var(--accent);
+margin-bottom:15px;
+}
+
+.balance{
+font-size:42px;
+margin:10px 0;
+}
+
+input{
+padding:8px;
+margin:5px;
+border-radius:6px;
+border:1px solid #444;
+background:#111;
+color:white;
+}
+
+button{
+padding:8px 15px;
+border-radius:6px;
+border:none;
+background:var(--accent);
+cursor:pointer;
+font-weight:bold;
+}
+
+.tx{
+display:flex;
+justify-content:space-between;
+padding:8px 0;
+border-bottom:1px solid #222;
+font-size:14px;
+}
+
+.tx-note{
+color:#aaa;
+}
+
+.tx-amount{
+color:var(--accent);
+font-weight:bold;
+}
+
+</style>
 </head>
+
 <body>
 
-    <div class="dashboard">
-        <h1>VaultLine Finance</h1>
-        <span id="status-tag" class="status-badge">Awaiting Sync...</span>
-        
-        <p class="balance-label">Available Balance</p>
-        <div class="balance-amount" id="balance">$0.00</div>
-        <p>Account Holder: <span id="user" class="user-tag">Loading...</span></p>
+<div class="dashboard">
 
-        <div class="ledger-container">
-            <div class="ledger-title">Recent Activity</div>
-            <div id="transaction-list">
-                </div>
-        </div>
-        
-        <button class="btn-refresh" onclick="fetchData()">Manual Refresh</button>
-    </div>
+<h1>VaultLine Finance</h1>
+<div id="status" class="status">Not Connected</div>
 
-    <script>
-    async function fetchData() {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/api/v1/account');
-            const data = await response.json();
+<div id="login-box">
 
-            // Update balance & user
-            document.getElementById('balance').innerText =
-                `$${data.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-            document.getElementById('user').innerText = data.owner;
-            document.getElementById('status-tag').innerText = data.db_status;
-            document.getElementById('balance').style.color = "white";
+<input id="username" placeholder="Username">
+<input id="password" placeholder="Password" type="password">
 
-            // Update transaction list
-            const list = document.getElementById('transaction-list');
-            list.innerHTML = "";
+<br><br>
 
-            if (data.transactions && data.transactions.length > 0) {
-                data.transactions.forEach(tx => {
-                    const item = document.createElement("div");
-                    item.className = "tx-item";
-                    item.innerHTML = `
-                        <span class="tx-note">${tx.note}</span>
-                        <span class="tx-amount deposit">$${tx.amount}</span>
-                    `;
-                    list.appendChild(item);
-                });
-            } else {
-                list.innerHTML = "<div class='tx-note'>No recent activity</div>";
-            }
+<button onclick="login()">Login</button>
 
-        } catch (error) {
-            console.error("API fetch failed:", error);
-            document.getElementById('status-tag').innerText = "API ERROR";
-        }
-    }
+</div>
 
-    // Auto-load data on page load
-    fetchData();
+<h4>Available Balance</h4>
+<div id="balance" class="balance">$0.00</div>
+
+<div>Account Holder: <span id="user">---</span></div>
+
+<br>
+
+<div id="transactions"></div>
+
+<br>
+
+<button onclick="fetchAccount()">Refresh</button>
+
+</div>
+
+<script>
+
+const AUTH_API = "http://localhost:8001/login"
+const LEDGER_API = "http://localhost:8000/api/v1/account/"
+
+async function login(){
+
+const username = document.getElementById("username").value
+const password = document.getElementById("password").value
+
+if(!username || !password){
+alert("Enter username and password")
+return
+}
+
+try{
+
+const res = await fetch(AUTH_API,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+username:username,
+password:password
+})
+})
+
+if(!res.ok){
+throw new Error("Login failed")
+}
+
+const data = await res.json()
+
+localStorage.setItem("token",data.access_token)
+localStorage.setItem("user",username)
+
+document.getElementById("status").innerText="Authenticated"
+
+fetchAccount()
+
+}catch(err){
+
+console.error(err)
+
+document.getElementById("status").innerText="Login Error"
+
+}
+
+}
+
+async function fetchAccount(){
+
+const token = localStorage.getItem("token")
+const user = localStorage.getItem("user")
+
+if(!token || !user){
+document.getElementById("status").innerText="Login Required"
+return
+}
+
+try{
+
+const res = await fetch(LEDGER_API+user,{
+headers:{
+"Authorization":"Bearer "+token
+}
+})
+
+if(!res.ok){
+throw new Error("API Error")
+}
+
+const data = await res.json()
+
+document.getElementById("balance").innerText =
+"$"+Number(data.balance).toLocaleString()
+
+document.getElementById("user").innerText = data.owner
+
+document.getElementById("status").innerText = data.db_status
+
+const txBox = document.getElementById("transactions")
+
+txBox.innerHTML=""
+
+if(data.transactions){
+
+data.transactions.forEach(tx=>{
+
+const div=document.createElement("div")
+
+div.className="tx"
+
+div.innerHTML=
+`<span class="tx-note">${tx.note}</span>
+<span class="tx-amount">$${tx.amount}</span>`
+
+txBox.appendChild(div)
+
+})
+
+}
+
+}catch(err){
+
+console.error(err)
+
+document.getElementById("status").innerText="API ERROR"
+
+}
+
+}
+
+/* auto reload session */
+
+window.onload=()=>{
+
+const token = localStorage.getItem("token")
+
+if(token){
+fetchAccount()
+}
+
+}
+
 </script>
+
+</body>
+</html>
