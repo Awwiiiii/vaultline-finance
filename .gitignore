@@ -1,35 +1,66 @@
+# -------------------------
 # Python
+# -------------------------
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.log
+*.sqlite3
+
 venv/
 .env
 
+# -------------------------
+# Docker
+# -------------------------
+*.tar
+*.gz
+
+# -------------------------
 # Terraform
+# -------------------------
 .terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
 
+# -------------------------
 # Logs
+# -------------------------
+logs/
 *.log
 
-# OS
+# -------------------------
+# OS files
+# -------------------------
 .DS_Store
 Thumbs.db
 
-# Secrets
+# -------------------------
+# Secrets / Keys
+# -------------------------
 *.pem
 *.key
 *.env
 
+# -------------------------
 # Dev tools / binaries
+# -------------------------
 argocd.exe
 kubectl
 eksctl
 aws/
 awscliv2.zip
 
+# -------------------------
 # VSCode
+# -------------------------
 .vscode/
+
+# -------------------------
+# Node / Frontend
+# -------------------------
+node_modules/
+dist/
+build/
