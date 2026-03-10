@@ -94,7 +94,7 @@ font-weight:bold;
 <div class="dashboard">
 
 <h1>VaultLine Finance</h1>
-<div id="status" class="status">Not Connected</div>
+<div id="status" class="status">Login Required</div>
 
 <div id="login-box">
 
@@ -124,15 +124,18 @@ font-weight:bold;
 
 <script>
 
-const AUTH_API = "http://localhost:8001/login"
-const LEDGER_API = "http://localhost:8000/api/v1/account/"
+const AUTH_API = "http://localhost:8080/api/auth/login"
+const LEDGER_API = "http://localhost:8080/api/account/"
+
+let token = null
+let user = null
 
 async function login(){
 
-const username = document.getElementById("username").value
+user = document.getElementById("username").value
 const password = document.getElementById("password").value
 
-if(!username || !password){
+if(!user || !password){
 alert("Enter username and password")
 return
 }
@@ -145,7 +148,7 @@ headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
-username:username,
+username:user,
 password:password
 })
 })
@@ -156,8 +159,10 @@ throw new Error("Login failed")
 
 const data = await res.json()
 
-localStorage.setItem("token",data.access_token)
-localStorage.setItem("user",username)
+token = data.access_token
+
+localStorage.setItem("token",token)
+localStorage.setItem("user",user)
 
 document.getElementById("status").innerText="Authenticated"
 
@@ -166,7 +171,6 @@ fetchAccount()
 }catch(err){
 
 console.error(err)
-
 document.getElementById("status").innerText="Login Error"
 
 }
@@ -175,8 +179,8 @@ document.getElementById("status").innerText="Login Error"
 
 async function fetchAccount(){
 
-const token = localStorage.getItem("token")
-const user = localStorage.getItem("user")
+token = localStorage.getItem("token")
+user = localStorage.getItem("user")
 
 if(!token || !user){
 document.getElementById("status").innerText="Login Required"
@@ -185,27 +189,30 @@ return
 
 try{
 
-const res = await fetch(LEDGER_API+user,{
+const res = await fetch(LEDGER_API + user,{
 headers:{
-"Authorization":"Bearer "+token
+"Authorization":"Bearer " + token
 }
 })
 
 if(!res.ok){
-throw new Error("API Error")
+throw new Error("Unauthorized")
 }
 
 const data = await res.json()
 
+const balance = Number(data.balance || 0)
+
 document.getElementById("balance").innerText =
-"$"+Number(data.balance).toLocaleString()
+"$" + balance.toLocaleString()
 
-document.getElementById("user").innerText = data.owner
+document.getElementById("user").innerText =
+data.owner || user
 
-document.getElementById("status").innerText = data.db_status
+document.getElementById("status").innerText =
+data.db_status || "Connected"
 
 const txBox = document.getElementById("transactions")
-
 txBox.innerHTML=""
 
 if(data.transactions){
@@ -213,7 +220,6 @@ if(data.transactions){
 data.transactions.forEach(tx=>{
 
 const div=document.createElement("div")
-
 div.className="tx"
 
 div.innerHTML=
@@ -229,20 +235,18 @@ txBox.appendChild(div)
 }catch(err){
 
 console.error(err)
-
-document.getElementById("status").innerText="API ERROR"
-
-}
+document.getElementById("status").innerText="API Error"
 
 }
 
-/* auto reload session */
+}
 
-window.onload=()=>{
+window.onload = () => {
 
-const token = localStorage.getItem("token")
+token = localStorage.getItem("token")
+user = localStorage.getItem("user")
 
-if(token){
+if(token && user){
 fetchAccount()
 }
 

@@ -1,15 +1,19 @@
+version: "3.9"
+
 services:
 
   db:
     image: postgres:15
     container_name: vaultline-db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: vaultlinedb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: vaultpass123
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -21,7 +25,7 @@ services:
     container_name: vaultline-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
     networks:
       - vaultline-net
 
@@ -30,11 +34,21 @@ services:
     build: ./backend/auth-service
     container_name: vaultline-auth
     restart: always
-    ports:
-      - "8001:8000"
     depends_on:
       - db
       - redis
+    env_file:
+      - .env
+    ports:
+      - "${AUTH_PORT}:8000"
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
     networks:
       - vaultline-net
 
@@ -43,24 +57,75 @@ services:
     build: ./backend/ledger-service
     container_name: vaultline-ledger
     restart: always
-    ports:
-      - "8000:5000"
     depends_on:
       - db
       - redis
+      - kafka
+    env_file:
+      - .env
+    ports:
+      - "${LEDGER_PORT}:5000"
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_TOPIC: ${KAFKA_TOPIC}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+    networks:
+      - vaultline-net
+
+
+  fraud-service:
+    build: ./backend/fraud-service
+    container_name: vaultline-fraud
+    restart: always
+    depends_on:
+      - kafka
+    env_file:
+      - .env
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_TOPIC: ${KAFKA_TOPIC}
+      KAFKA_GROUP_ID: ${FRAUD_GROUP_ID}
+      KAFKA_OFFSET_RESET: ${KAFKA_OFFSET_RESET}
+    networks:
+      - vaultline-net
+
+
+  notification-service:
+    build: ./backend/notification-service
+    container_name: vaultline-notification
+    restart: always
+    depends_on:
+      - kafka
+    env_file:
+      - .env
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_TOPIC: ${KAFKA_TOPIC}
+      KAFKA_GROUP_ID: ${NOTIFICATION_GROUP_ID}
+      KAFKA_OFFSET_RESET: ${KAFKA_OFFSET_RESET}
     networks:
       - vaultline-net
 
 
   gateway:
-    build: ./gateway
+    image: nginx:latest
     container_name: vaultline-gateway
     restart: always
-    ports:
-      - "8080:80"
     depends_on:
       - auth-service
       - ledger-service
+    ports:
+      - "${GATEWAY_PORT}:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - vaultline-net
 
@@ -69,10 +134,10 @@ services:
     build: ./frontend
     container_name: vaultline-web
     restart: always
-    ports:
-      - "3000:80"
     depends_on:
       - gateway
+    ports:
+      - "${FRONTEND_PORT}:80"
     networks:
       - vaultline-net
 
@@ -82,7 +147,7 @@ services:
     container_name: vaultline-prometheus
     restart: always
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT}:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
@@ -93,10 +158,56 @@ services:
     image: grafana/grafana
     container_name: vaultline-grafana
     restart: always
-    ports:
-      - "3001:3000"
     depends_on:
       - prometheus
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    networks:
+      - vaultline-net
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: vaultline-zookeeper
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "${ZOOKEEPER_PORT}:2181"
+    networks:
+      - vaultline-net
+
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: vaultline-kafka
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA_PORT}:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_HOST}:${KAFKA_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - vaultline-net
+
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: vaultline-kafka-ui
+    restart: always
+    depends_on:
+      - kafka
+    ports:
+      - "${KAFKA_UI_PORT}:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: vaultline
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
     networks:
       - vaultline-net
 
